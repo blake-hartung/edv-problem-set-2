@@ -1,7 +1,23 @@
+---
+title: "problem_set_2"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE,
+                      message = FALSE,
+                      warning = FALSE)
+```
+
+### Problem 2: Pet Names
+
+```{r fig.height=5, fig.width=10}
 library(tidyverse)
 library(openintro)
+library(gridExtra)
 
 # Problem 2a
+
 dog_30 <- seattlepets %>%
   filter(species == 'Dog') %>%
   count(animal_name) %>%
@@ -22,19 +38,24 @@ cat_30 <- na.omit(cat_30_na)
 
 
 cleveland_dog <- ggplot(dog_30) +
-  geom_point(aes(x=n, y=reorder(animal_name, n)), color='blue') +
+  geom_point(aes(x=n, y=reorder(animal_name, n)), color='blue', size = 2) +
   ggtitle("Popular Dog Names") +
   ylab('Dog Name') +
   xlab('Count') +
   theme_linedraw()
 
 cleveland_cat <- ggplot(cat_30) +
-  geom_point(aes(x=n, y=reorder(animal_name, n)), color = 'red') +
+  geom_point(aes(x=n, y=reorder(animal_name, n)), color = 'red', size = 2) +
   ggtitle('Popular Cat Names') +
   ylab('Cat Name') +
   xlab('Count') +
   theme_linedraw()
 
+gridExtra::grid.arrange(cleveland_dog, cleveland_cat, nrow=1)
+```
+
+
+```{r fig.height=5, fig.width=5}
 # Problem 2b
 
 gather_name_prop <- seattlepets %>%
@@ -56,11 +77,19 @@ dog_proportions <- left_join(gather_dog_prop, gather_name_prop, by = 'animal_nam
   arrange(desc(prop))
 
 dog_prop_plot <- ggplot(dog_proportions) +
-  geom_point(aes(x=prop, y=reorder(animal_name, prop)), color='green') +
+  geom_point(aes(x=prop, y=reorder(animal_name, prop)),
+             color='darkgreen', size = 2) +
   xlim(0.5, 1.0) +
-  ggtitle("") +
+  ggtitle("Most 'dog' names in seattlepets") +
+  ylab('Dog Name') +
+  xlab('Proportion of each name given to a dog') +
   theme_linedraw()
 
+dog_prop_plot
+```
+
+
+```{r fig.height=6, fig.width=6}
 # problem 2c
 both <- seattlepets %>%
   filter(species == 'Dog' | species == 'Cat') %>%
@@ -83,13 +112,19 @@ full_df <- left_join(both, long_data, by='animal_name') %>%
   slice(4:93)
 
 cleveland_totals <- ggplot(full_df) +
-  geom_point(aes(x=n.y, y=reorder(animal_name, n.x), color=species)) +
+  geom_point(aes(x=n.y, y=reorder(animal_name, n.x),color=species),
+             size = 2) +
   ylab('Animal Name') +
   xlab('Count') +
   ggtitle('Most popular dog and cat names') +
   theme_linedraw()
 
-# problem 2d
+cleveland_totals
+```
+
+
+```{r fig.height=10, fig.width=10}
+# problem 2d-e
 
 popular_names <- na.omit(cats_and_dogs %>%
   filter(n >= 2) %>%
@@ -100,7 +135,12 @@ popular_names <- na.omit(cats_and_dogs %>%
 scatter <- ggplot(popular_names, aes(x = Dog, y = Cat)) +
   geom_point(alpha = 0.1,
              stroke = 0,
-             color = 'blue') 
+             color = 'blue') +
+  theme(panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        panel.background = element_blank(),
+        axis.line = element_line(color = 'black')) +
+  ggtitle('Dog v Cat name counts')
 
 fit <- broom::tidy(lm(Cat ~ 0 + Dog, data = popular_names))
 slope <- as.numeric(fit$estimate)
@@ -118,14 +158,14 @@ scattergories <- ggplot(popular_names2, aes(x = Dog, y = Cat, color = bias)) +
   geom_text(data = subset(popular_names2, Dog > 150 | Cat > 50),
             aes(label = animal_name),
             nudge_x = 10,
-            size =2.5,
+            size = 4,
             check_overlap = TRUE) +
   theme(panel.grid.major = element_blank(),
         panel.grid.minor = element_blank(),
         panel.background = element_blank(),
-        axis.line = element_line(color = 'black'))
-        
+        axis.line = element_line(color = 'black')) +
+  ggtitle('Dog vs Cat Name Counts colored by Species Bias')
 
-
-
+gridExtra::grid.arrange(scatter, scattergories, nrow=2)
+```
 
